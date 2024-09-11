@@ -1,0 +1,20 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://127.0.0.1:3306/flowable-demo?autoReconnect=true&useSSL=false&allowMultiQueries=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&nullCatalogMeansCurrent=true
+    username: root
+    password: root
+  aop:
+    proxy-target-class: false
+
+
+logging:
+    root: info
+    org.flowable: debug
+
+#flowable:
+#  database-schema-update: true
+#  async-executor-activate: false
