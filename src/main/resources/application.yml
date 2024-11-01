@@ -12,8 +12,15 @@ spring:
 
 
 logging:
-    root: info
-    org.flowable: debug
+    level:
+      root: info
+      org.flowable: debug
+      org.flowable.job: info
+      org.flowable.common.engine.impl.db.DbSqlSession: info
+      org.flowable.common.spring.SpringTransactionInterceptor: info
+      org.flowable.common.engine.impl.agenda.AbstractAgenda: info
+      org.flowable.common.engine.impl.interceptor.LogInterceptor: info
+      org.flowable.engine.impl.interceptor.CommandInvoker: info
 
 #flowable:
 #  database-schema-update: true

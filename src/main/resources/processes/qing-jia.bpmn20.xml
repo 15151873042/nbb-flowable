@@ -4,7 +4,7 @@
              typeLanguage="http://www.w3.org/2001/XMLSchema" expressionLanguage="http://www.w3.org/1999/XPath"
              targetNamespace="http://www.flowable.org/processdef">
     <!-- -请假条流程图 -->
-    <process id="vacationRequest" name="请假条流程" isExecutable="true">
+    <process id="qing-jia" name="请假条流程demo" isExecutable="true">
         <!-- -流程的开始 -->
         <startEvent id="startEvent"/>
         <sequenceFlow sourceRef="startEvent" targetRef="approveTask"/>

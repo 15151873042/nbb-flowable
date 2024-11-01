@@ -4,12 +4,8 @@ import com.nbb.flowable.pojo.ResponseBean;
 import com.nbb.flowable.pojo.VacationApproveVo;
 import com.nbb.flowable.pojo.VacationInfo;
 import com.nbb.flowable.pojo.VacationRequestVo;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 import org.flowable.engine.HistoryService;
+import org.flowable.engine.RepositoryService;
 import org.flowable.engine.RuntimeService;
 import org.flowable.engine.TaskService;
 import org.flowable.engine.history.HistoricProcessInstance;
@@ -19,6 +15,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.*;
+import java.util.stream.Collectors;
+
 /**
  * @project 请假流程测试
  * @Description
@@ -27,7 +26,7 @@ import org.springframework.transaction.annotation.Transactional;
  * @Version 1.0.0
  **/
 @Service
-public class VacationService {
+public class QingJiaService {
     @Autowired
     RuntimeService runtimeService;
 
@@ -37,20 +36,21 @@ public class VacationService {
     @Autowired
     HistoryService historyService;
 
+
     /**
      * 申请请假
      * @param vacationRequestVO
      * @return
      */
     @Transactional
-    public ResponseBean askForLeave(VacationRequestVo vacationRequestVO) {
+    public ResponseBean instanceAdd(VacationRequestVo vacationRequestVO) {
         Map<String, Object> variables = new HashMap<>();
         variables.put("name", vacationRequestVO.getName());
         variables.put("days", vacationRequestVO.getDays());
         variables.put("reason", vacationRequestVO.getReason());
         try {
             //指定业务流程
-            runtimeService.startProcessInstanceByKey("vacationRequest", vacationRequestVO.getName(), variables);
+            runtimeService.startProcessInstanceByKey("qing-jia", vacationRequestVO.getName(), variables);
             return ResponseBean.ok("已提交请假申请");
         } catch (Exception e) {
             e.printStackTrace();
@@ -63,16 +63,20 @@ public class VacationService {
      * @param identity
      * @return
      */
-    public ResponseBean leaveList(String identity) {
-        List<Task> tasks = taskService.createTaskQuery().taskCandidateGroup(identity).list();
-        List<Map<String, Object>> list = new ArrayList<>();
-        for (int i = 0; i < tasks.size(); i++) {
-            Task task = tasks.get(i);
-            Map<String, Object> variables = taskService.getVariables(task.getId());
-            variables.put("id", task.getId());
-            list.add(variables);
-        }
-        return ResponseBean.ok("加载成功", list);
+    public ResponseBean taskTodoList(String identity) {
+
+        List<Task> todoTaskList = taskService.createTaskQuery().taskCandidateGroup(identity).list();
+
+        List<Map<String, Object>> voList = todoTaskList.stream()
+                .map(task -> {
+                    Map<String, Object> taskVariables = taskService.getVariables(task.getId());
+                    taskVariables.put("id", task.getId());
+                    return taskVariables;
+                })
+                .collect(Collectors.toList());
+
+
+        return ResponseBean.ok("加载成功", voList);
     }
 
     /**
@@ -80,7 +84,8 @@ public class VacationService {
      * @param vacationVO
      * @return
      */
-    public ResponseBean askForLeaveHandler(VacationApproveVo vacationVO) {
+    public ResponseBean taskHandler(VacationApproveVo vacationVO) {
+
         try {
             boolean approved = vacationVO.getApprove();
             Map<String, Object> variables = new HashMap<String, Object>();
@@ -97,6 +102,7 @@ public class VacationService {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
         return ResponseBean.error("操作失败");
     }
 
@@ -105,7 +111,7 @@ public class VacationService {
      * @param name
      * @return
      */
-    public ResponseBean searchResult(String name) {
+    public ResponseBean taskDoneList(String name) {
         List<VacationInfo> vacationInfos = new ArrayList<>();
         List<HistoricProcessInstance> historicProcessInstances = historyService.createHistoricProcessInstanceQuery().processInstanceBusinessKey(name).finished().orderByProcessInstanceEndTime().desc().list();
         for (HistoricProcessInstance historicProcessInstance : historicProcessInstances) {

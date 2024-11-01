@@ -49,7 +49,7 @@
             methods: {
                 initTasks() {
                     let _this = this;
-                    axios.get('/vacation/list?identity=' + this.identity)
+                    axios.get('/demo/task/todo/list?identity=' + this.identity)
                         .then(function (response) {
                             _this.tasks = response.data.data;
                         })
@@ -59,7 +59,7 @@
                 },
                 approveOrReject(taskId, approve,name) {
                     let _this = this;
-                    axios.post('/vacation/handler', {taskId: taskId, approve: approve,name:name})
+                    axios.post('/demo/task/todo/handler', {taskId: taskId, approve: approve,name:name})
                         .then(function (response) {
                             _this.$message.success("审批成功");
                             _this.initTasks();

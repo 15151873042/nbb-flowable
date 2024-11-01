@@ -45,7 +45,7 @@
             methods: {
                 search() {
                     let _this = this;
-                    axios.get('/vacation/search?name=' + this.name)
+                    axios.get('/demo/task/done/list?name=' + this.name)
                         .then(function (response) {
                             if (response.data.status == 200) {
                                 _this.historyInfos=response.data.data;
