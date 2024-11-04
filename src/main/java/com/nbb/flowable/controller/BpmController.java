@@ -1,6 +1,7 @@
 package com.nbb.flowable.controller;
 
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.IdUtil;
 import com.nbb.flowable.dto.ProcessInstanceCreateDTO;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -41,7 +42,7 @@ public class BpmController {
     /**
      * 查询所有流程定义列表
      */
-    @Operation(summary = "流程定义列表")
+    @Operation(summary = "流程定义 - 列表查询")
     @GetMapping("/process-definition/list")
     public Object processDefinitionList() {
         ProcessDefinitionQuery processDefinitionQuery = repositoryService.createProcessDefinitionQuery()
@@ -63,13 +64,12 @@ public class BpmController {
     /**
      * 创建流程实例（发起任务）
      */
-    @Operation(summary = "创建流程（发起任务）")
+    @Operation(summary = "流程定义 - 创建流程（发起任务）")
     @PostMapping("/process-instance/create")
     public Object processInstanceCreate(@RequestBody ProcessInstanceCreateDTO dto) {
         // 查询流程定义
-        String processDefinitionKey = dto.getProcessDefinitionKey();
         ProcessDefinition processDefinition = repositoryService.createProcessDefinitionQuery()
-                .processDefinitionKey(processDefinitionKey)
+                .processDefinitionId(dto.getProcessDefinitionId())
                 .active()
                 .singleResult();
 
@@ -79,7 +79,7 @@ public class BpmController {
         Map<String, Object> variables = dto.getVariables();
         ProcessInstance instance = runtimeService.createProcessInstanceBuilder()
                 .processDefinitionId(processDefinition.getId())
-//                .businessKey("") // 设置业务id，可以赋值为业务数据的主键值
+                .businessKey(IdUtil.getSnowflakeNextIdStr()) // 设置业务id，可以赋值为业务数据的主键值
                 .name(processDefinition.getName() + "实例")
                 .variables(variables)
                 .start();
@@ -90,7 +90,7 @@ public class BpmController {
     /**
      * 查询所有流程实例
      */
-    @Operation(summary = "流程实例列表")
+    @Operation(summary = "流程实例 - 列表查询")
     @GetMapping("/process-instance/list")
     public Object processInstanceList() {
         HistoricProcessInstanceQuery instanceQuery = historyService.createHistoricProcessInstanceQuery()
@@ -108,15 +108,27 @@ public class BpmController {
                         .put("processDefinitionId", instance.getProcessDefinitionId())
                         .put("processDefinitionName", instance.getProcessDefinitionName())
                         .put("variables", instance.getProcessVariables())
+                        .put("businessKey", instance.getBusinessKey())
                         .build())
                 .collect(Collectors.toList());
         return voList;
     }
 
+
+    /**
+     * 取消流程实例
+     */
+    @Operation(summary = "流程实例 - 取消流程")
+    @GetMapping("/process-instance/cancel")
+    public Object processInstanceCancel(String processInstanceId, String reason) {
+        runtimeService.deleteProcessInstance(processInstanceId, "用户取消流程的原因是：" + reason);
+        return "success";
+    }
+
     /**
      * 查询所有代办任务
      */
-    @Operation(summary = "代办任务列表")
+    @Operation(summary = "任务 - 代办任务列表")
     @GetMapping("/task-todo/list")
     public Object taskDodoList(String handlerUserId) {
         TaskQuery taskQuery = taskService.createTaskQuery()
@@ -141,6 +153,7 @@ public class BpmController {
                             .put("processInstanceName", processInstance.getName())
                             .put("processInstanceStartTime", processInstance.getStartTime())
                             .put("startUserId", processInstance.getStartUserId())
+                            .put("businessKey", processInstance.getBusinessKey())
                             .build();})
                 .collect(Collectors.toList());
 
@@ -150,7 +163,7 @@ public class BpmController {
     /**
      * 审批通过
      */
-    @Operation(summary = "审批通过")
+    @Operation(summary = "任务 - 审批通过")
     @PutMapping("/task/approve")
     public Object taskApprove(String taskId, String reason) {
         Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
@@ -164,7 +177,7 @@ public class BpmController {
     /**
      * 审批不通过
      */
-    @Operation(summary = "审批不通过")
+    @Operation(summary = "任务 - 审批不通过")
     @PutMapping("/task/reject")
     public Object taskReject(String taskId, String reason) {
         Task task = taskService.createTaskQuery().taskId(taskId).singleResult();
@@ -174,7 +187,7 @@ public class BpmController {
         ProcessInstance processInstance = runtimeService.createProcessInstanceQuery().processInstanceId(task.getProcessInstanceId()).singleResult();
         String rootProcessInstanceId = processInstance.getProcessInstanceId(); // 获取流程根id
 
-//        runtimeService.setVariable(rootProcessInstanceId, "", ""); // 流程实例设置变量
+//        runtimeService.setVariable(rootProcessInstanceId, "", ""); // 给流程实例设置变量api
         runtimeService.deleteProcessInstance(rootProcessInstanceId, reason);
 
         return "success";

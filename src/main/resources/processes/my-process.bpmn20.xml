@@ -1,16 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:flowable="http://flowable.org/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:xsd="http://www.w3.org/2001/XMLSchema" targetNamespace="http://www.activiti.org/processdef">
+<definitions xmlns="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:flowable="http://flowable.org/bpmn"
+             targetNamespace="http://www.activiti.org/processdef">
     <!-- -请假条流程图 -->
     <process id="my-process" name="我的流程" isExecutable="true">
 
-        <startEvent id="event_01" name="开始"></startEvent>
+        <startEvent id="start_event_01" name="开始"></startEvent>
 
-        <endEvent id="event_02" name="结束"></endEvent>
+        <sequenceFlow id="flow_01" name="流_01" sourceRef="start_event_01" targetRef="service_task_01" />
 
-        <sequenceFlow id="flow_01" name="流1" sourceRef="event_01" targetRef="task01" />
+        <serviceTask id="service_task_01" name="服务任务-01" flowable:delegateExpression="${demoServiceTask}"></serviceTask>
 
-        <userTask id="task01" name="用户审批任务" flowable:assignee="admin"></userTask>
+        <sequenceFlow id="flow_02" name="流_02" sourceRef="service_task_01" targetRef="user_task_01" />
 
-        <sequenceFlow id="flow_02" name="流2" sourceRef="task01" targetRef="event_02" />
+        <userTask id="user_task_01" name="用户审批任务" flowable:assignee="admin"></userTask>
+
+        <sequenceFlow id="flow_03" name="流3" sourceRef="user_task_01" targetRef="end_event_01" />
+
+        <endEvent id="end_event_01" name="结束"></endEvent>
+
     </process>
 </definitions>

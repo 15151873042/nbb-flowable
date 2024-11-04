@@ -14,8 +14,8 @@ public class ProcessInstanceCreateDTO {
     @Schema(description = "流程创建者id")
     private String userId;
 
-    @Schema(description = "流程定义key")
-    private String processDefinitionKey;
+    @Schema(description = "流程定义Id")
+    private String processDefinitionId;
 
     @Schema(description = "流程实例的业务参数")
     private Map<String, Object> variables;
